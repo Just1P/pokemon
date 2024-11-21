@@ -4,8 +4,8 @@ const Layout = () => {
   return (
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="pokemons" options={{ title: "Tous les Pokémon" }} />
-      <Stack.Screen name="team" options={["Combat"]} />
+      <Stack.Screen name="details/[id]" options={{ title: "Pokemon" }} />
+      <Stack.Screen name="search/[query]" options={{ title: "Recherche" }} />
     </Stack>
   );
 };
