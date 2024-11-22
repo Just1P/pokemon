@@ -57,7 +57,7 @@ const PokemonDetails = () => {
   const { evolutions, loading: loadingEvolutions } = usePokemonEvolutions(
     id as string
   );
-  const [activeTab, setActiveTab] = useState("resistances");
+  const [activeTab, setActiveTab] = useState("stats");
   const [typeImages, setTypeImages] = useState({});
 
   useEffect(() => {
@@ -182,7 +182,7 @@ const PokemonDetails = () => {
           <View style={styles.baseStatsContainer}>
             {Object.entries(pokemon.stats).map(([key, value]) => (
               <View key={key} style={styles.statRow}>
-                <Text style={styles.statLabel}>{statNames[key] || key} </Text>
+                <Text style={styles.statLabel}>{statNames[key] || key}</Text>
                 <Text style={styles.statValue}>{value}</Text>
                 {renderStatBar(value)}
               </View>

@@ -52,7 +52,11 @@ const Home = () => {
   const renderPokemon = ({ item }: { item: any }) => (
     <TouchableOpacity
       onPress={() => handlePokemonPress(item.id)}
-      style={[styles.card, { backgroundColor: getTypeColor(item.apiTypes) }]}
+      style={[
+        styles.card,
+        styles.pokemonCard,
+        { backgroundColor: getTypeColor(item.apiTypes) },
+      ]}
     >
       <Image source={{ uri: item.image }} style={styles.image} />
       <Text style={styles.text}>{item.name}</Text>
@@ -62,7 +66,7 @@ const Home = () => {
   const renderType = ({ item }: { item: any }) => (
     <TouchableOpacity
       onPress={() => handleTypePress(item.name)}
-      style={[styles.card, { backgroundColor: "#D3E8FF" }]}
+      style={[styles.card, styles.typeCard, { backgroundColor: "#D3E8FF" }]}
     >
       <Image source={{ uri: item.image }} style={styles.image} />
       <Text style={styles.text}>{item.name}</Text>
@@ -119,7 +123,8 @@ const Home = () => {
       </TouchableOpacity>
       <FlatList
         data={randomTypes}
-        horizontal
+        horizontal={false} // Liste verticale pour éviter le défilement horizontal
+        numColumns={3} // Trois colonnes pour afficher tous les types
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderType}
         contentContainerStyle={styles.listContainer}
@@ -151,7 +156,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   card: {
-    flex: 1,
     flexDirection: "column",
     margin: 8,
     borderRadius: 12,
@@ -163,8 +167,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
-    height: 150,
-    width: 120,
+  },
+  pokemonCard: {
+    height: 160, // Augmente la hauteur des cartes Pokémon
+    width: 180, // Augmente la largeur des cartes Pokémon
+  },
+  typeCard: {
+    height: 110, // Réduit la hauteur des cartes des types
+    width: 110, // Réduit la largeur des cartes des types
   },
   image: {
     width: 80,
