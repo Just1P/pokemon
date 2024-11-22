@@ -24,7 +24,7 @@ export default function AppLayout() {
       <Tabs.Screen
         name="pokemons"
         options={{
-          title: "Pokémon",
+          title: "Pokédex",
           tabBarIcon: ({ color, focused }) => (
             <MaterialCommunityIcons name="pokeball" size={24} color={color} />
           ),
