@@ -7,13 +7,14 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { useRouter } from "expo-router"; // Import de useRouter
+import { useRouter } from "expo-router";
 import usePokemons from "@/hook/usePokemons";
-import Header from "@/components/Header";
+
+import SearchBar from "@/components/SearchBar";
 
 const PokemonList = () => {
   const pokemons = usePokemons();
-  const router = useRouter(); // Initialisation du routeur
+  const router = useRouter();
   const [activeGeneration, setActiveGeneration] = useState<number | null>(null);
 
   const generations = Array.from({ length: 8 }, (_, i) => i + 1);
@@ -59,7 +60,7 @@ const PokemonList = () => {
     const reversedTypes = [...item.apiTypes].reverse();
 
     const handlePress = () => {
-      router.push(`/pokemons/details/${item.id}`); // Navigation vers la page de détails
+      router.push(`/pokemons/details/${item.id}`);
     };
 
     return (
@@ -109,7 +110,7 @@ const PokemonList = () => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <SearchBar />
       {activeGeneration && (
         <View style={styles.stickyHeader}>
           <TouchableOpacity onPress={() => toggleSection(activeGeneration)}>
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    height: 120, // Hauteur fixe pour toutes les cartes
+    height: 130,
   },
   leftContainer: {
     flex: 1,
