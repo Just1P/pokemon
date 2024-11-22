@@ -100,7 +100,7 @@ const Home = () => {
   return (
     <View style={styles.container}>
       <Header />
-      <SearchBar style={styles.searchBar} />
+      <SearchBar />
       <TouchableOpacity
         onPress={navigateToPokemonList}
         style={styles.touchable}
@@ -137,26 +137,18 @@ const Home = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#f2f2f2",
     paddingHorizontal: 16,
   },
-  searchBar: {
-    marginVertical: 12,
-  },
   sectionTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#2a9df4",
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#007AFF",
     marginVertical: 10,
     textDecorationLine: "underline",
-    alignSelf: "center",
   },
   touchable: {
     marginVertical: 10,
-    backgroundColor: "#eef4ff",
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
   },
   card: {
     flex: 1,
@@ -191,17 +183,16 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: "#007AFF",
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderRadius: 8,
     alignItems: "center",
     marginTop: 20,
-    marginHorizontal: 20,
+    marginHorizontal: 30,
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-    textTransform: "uppercase",
   },
 });
 
