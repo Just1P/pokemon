@@ -33,7 +33,7 @@ const Home = () => {
   };
 
   const navigateToTypeList = () => {
-    router.push("types");
+    router.push("/pokemons/(tabs)/types");
   };
 
   const handlePokemonPress = (id: number) => {
@@ -41,7 +41,7 @@ const Home = () => {
   };
 
   const navigateToTeamForm = () => {
-    router.push("team");
+    router.push("/pokemons/(tabs)/team");
   };
 
   const renderPokemon = ({ item }: { item: any }) => (
