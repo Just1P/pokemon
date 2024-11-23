@@ -3,6 +3,7 @@ import {
   View,
   Text,
   FlatList,
+  ScrollView,
   Image,
   StyleSheet,
   TouchableOpacity,
@@ -12,6 +13,7 @@ import Header from "@/components/Header";
 import usePokemons from "@/hook/usePokemons";
 import useTypes from "@/hook/useTypes";
 import SearchBar from "@/components/SearchBar";
+import PokemonCard from "@/components/PokemonCard";
 
 const Home = () => {
   const router = useRouter();
@@ -20,14 +22,6 @@ const Home = () => {
 
   const randomPokemons = pokemons.sort(() => 0.5 - Math.random()).slice(0, 6);
   const randomTypes = types.sort(() => 0.5 - Math.random()).slice(0, 3);
-
-  const navigateToRandomPokemon = () => {
-    if (pokemons.length > 0) {
-      const randomPokemon =
-        pokemons[Math.floor(Math.random() * pokemons.length)];
-      router.push(`pokemons/details/${randomPokemon.id}`);
-    }
-  };
 
   const navigateToPokemonList = () => {
     router.push("pokemons");
@@ -41,68 +35,25 @@ const Home = () => {
     router.push(`pokemons/details/${id}`);
   };
 
-  const navigateToTeamForm = () => {
-    router.push("/pokemons/(tabs)/team");
-  };
-
-  const handleTypePress = (typeName: string) => {
-    router.push(`pokemons/types/byType/${typeName}`);
-  };
-
   const renderPokemon = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      onPress={() => handlePokemonPress(item.id)}
-      style={[
-        styles.card,
-        styles.pokemonCard,
-        { backgroundColor: getTypeColor(item.apiTypes) },
-      ]}
-    >
-      <Image source={{ uri: item.image }} style={styles.image} />
-      <Text style={styles.text}>{item.name}</Text>
-    </TouchableOpacity>
+    <PokemonCard pokemon={item} onPress={() => handlePokemonPress(item.id)} />
   );
 
   const renderType = ({ item }: { item: any }) => (
     <TouchableOpacity
-      onPress={() => handleTypePress(item.name)}
+      onPress={() => router.push(`pokemons/types/byType/${item.name}`)}
       style={[styles.card, styles.typeCard, { backgroundColor: "#D3E8FF" }]}
     >
-      <Image source={{ uri: item.image }} style={styles.image} />
+      <Image source={{ uri: item.image }} style={styles.typeImage} />
       <Text style={styles.text}>{item.name}</Text>
     </TouchableOpacity>
   );
 
-  const getTypeColor = (types: any[]) => {
-    const typeColors: { [key: string]: string } = {
-      Plante: "#78C850",
-      Feu: "#F08030",
-      Eau: "#6890F0",
-      Insecte: "#A8B820",
-      Normal: "#A8A878",
-      Poison: "#A040A0",
-      Électrik: "#F8D030",
-      Sol: "#E0C068",
-      Fée: "#EE99AC",
-      Combat: "#C03028",
-      Psy: "#F85888",
-      Roche: "#B8A038",
-      Spectre: "#705898",
-      Glace: "#98D8D8",
-      Dragon: "#7038F8",
-      Ténèbres: "#705848",
-      Acier: "#B8B8D0",
-      Vol: "#A890F0",
-    };
-
-    if (types.length > 1) {
-      return typeColors[types[1]?.name] || "#ccc";
-    }
-    return typeColors[types[0]?.name] || "#ccc";
-  };
-
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+    >
       <Header />
       <SearchBar />
       <TouchableOpacity
@@ -113,29 +64,37 @@ const Home = () => {
       </TouchableOpacity>
       <FlatList
         data={randomPokemons}
-        horizontal
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderPokemon}
-        contentContainerStyle={styles.listContainer}
+        numColumns={2}
+        scrollEnabled={false}
+        contentContainerStyle={styles.grid}
       />
       <TouchableOpacity onPress={navigateToTypeList} style={styles.touchable}>
         <Text style={styles.sectionTitle}>Types aléatoires</Text>
       </TouchableOpacity>
       <FlatList
         data={randomTypes}
-        horizontal={false} // Liste verticale pour éviter le défilement horizontal
-        numColumns={3} // Trois colonnes pour afficher tous les types
+        key={`numColumns-${3}`}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderType}
+        numColumns={3}
+        scrollEnabled={false}
         contentContainerStyle={styles.listContainer}
       />
-      <TouchableOpacity style={styles.button} onPress={navigateToRandomPokemon}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => router.push("/pokemons/random")}
+      >
         <Text style={styles.buttonText}>Voir un Pokémon Aléatoire</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={navigateToTeamForm}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => router.push("/pokemons/(tabs)/team")}
+      >
         <Text style={styles.buttonText}>Accéder au Combat</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -143,7 +102,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f2f2f2",
+  },
+  scrollContent: {
     paddingHorizontal: 16,
+    paddingBottom: 20,
   },
   sectionTitle: {
     fontSize: 20,
@@ -155,32 +117,23 @@ const styles = StyleSheet.create({
   touchable: {
     marginVertical: 10,
   },
-  card: {
-    flexDirection: "column",
-    margin: 8,
-    borderRadius: 12,
-    padding: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  pokemonCard: {
-    height: 160, // Augmente la hauteur des cartes Pokémon
-    width: 180, // Augmente la largeur des cartes Pokémon
+  grid: {
+    justifyContent: "space-between",
+    flexGrow: 1,
   },
   typeCard: {
-    height: 110, // Réduit la hauteur des cartes des types
-    width: 110, // Réduit la largeur des cartes des types
+    height: 110,
+    width: 110,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 12,
+    margin: 10,
   },
-  image: {
-    width: 80,
-    height: 80,
+  typeImage: {
+    width: 50,
+    height: 50,
     resizeMode: "contain",
-    marginBottom: 8,
+    marginBottom: 5,
   },
   text: {
     fontSize: 14,
