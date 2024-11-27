@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
-  Image,
-  TouchableOpacity,
   StyleSheet,
   Dimensions,
   ActivityIndicator,
+  Image,
+  TouchableOpacity,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import usePokemonDetails from "@/hook/usePokemonsDetails";
+import { getTypeColor } from "@/utils/TypeColors"; // Centralisation des couleurs
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -22,57 +23,10 @@ const statNames = {
   speed: "Speed",
 };
 
-const typeColors = {
-  Plante: "#78C850",
-  Feu: "#F08030",
-  Eau: "#6890F0",
-  Insecte: "#A8B820",
-  Normal: "#A8A878",
-  Poison: "#A040A0",
-  Électrik: "#F8D030",
-  Sol: "#E0C068",
-  Fée: "#EE99AC",
-  Combat: "#C03028",
-  Psy: "#F85888",
-  Roche: "#B8A038",
-  Spectre: "#705898",
-  Glace: "#98D8D8",
-  Dragon: "#7038F8",
-  Ténèbres: "#705848",
-  Acier: "#B8B8D0",
-  Vol: "#A890F0",
-};
-
-const getTypeColor = (types) => {
-  if (types?.length > 1) {
-    return typeColors[types[1]?.name] || "#ccc";
-  }
-  return typeColors[types[0]?.name] || "#ccc";
-};
-
 const PokemonDetails = () => {
   const { query } = useLocalSearchParams();
   const { pokemon, loading } = usePokemonDetails(query);
   const [activeTab, setActiveTab] = useState("stats");
-  const [typeImages, setTypeImages] = useState({});
-
-  useEffect(() => {
-    const fetchTypes = async () => {
-      try {
-        const response = await fetch("https://pokebuildapi.fr/api/v1/types");
-        const types = await response.json();
-        const typeMap = types.reduce((acc, type) => {
-          acc[type.name] = type.image;
-          return acc;
-        }, {});
-        setTypeImages(typeMap);
-      } catch (error) {
-        console.error("Error fetching types:", error);
-      }
-    };
-
-    fetchTypes();
-  }, []);
 
   if (loading) {
     return (
@@ -93,19 +47,50 @@ const PokemonDetails = () => {
 
   const headerColor = getTypeColor(pokemon.apiTypes);
 
-  const renderStatBar = (statValue) => {
-    const statPercentage = Math.min((statValue / 100) * 100, 100);
-    const barColor = statValue < 50 ? "#F08030" : "#78C850";
-    return (
-      <View style={styles.statBarContainer}>
-        <View
-          style={[
-            styles.statBarFill,
-            { width: `${statPercentage}%`, backgroundColor: barColor },
-          ]}
-        />
-      </View>
-    );
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "stats":
+        return (
+          <View style={styles.baseStatsContainer}>
+            {Object.entries(pokemon.stats).map(([key, value]) => (
+              <View key={key} style={styles.statRow}>
+                <Text style={styles.statLabel}>{statNames[key] || key}</Text>
+                <Text style={styles.statValue}>{value}</Text>
+                <View style={styles.statBarContainer}>
+                  <View
+                    style={[
+                      styles.statBarFill,
+                      {
+                        width: `${Math.min((value / 100) * 100, 100)}%`,
+                        backgroundColor: value < 50 ? "#F08030" : "#78C850",
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+            ))}
+          </View>
+        );
+      case "resistances":
+        return (
+          <View style={styles.resistanceGrid}>
+            {pokemon.apiResistances?.map((resistance) => (
+              <View key={resistance.name} style={styles.resistanceItem}>
+                <Image
+                  source={{ uri: resistance.image }}
+                  style={styles.resistanceIcon}
+                />
+                <Text style={styles.resistanceName}>{resistance.name}</Text>
+                <Text style={styles.resistanceMultiplier}>
+                  {resistance.damage_multiplier}x
+                </Text>
+              </View>
+            ))}
+          </View>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -115,7 +100,7 @@ const PokemonDetails = () => {
         <View style={styles.headerContent}>
           <Text style={styles.name}>{pokemon.name}</Text>
           <View style={styles.typesContainer}>
-            {pokemon.apiTypes?.map((type) => (
+            {pokemon.apiTypes.map((type) => (
               <View key={type.name} style={styles.typeBadge}>
                 <Text style={styles.typeText}>{type.name}</Text>
               </View>
@@ -130,65 +115,26 @@ const PokemonDetails = () => {
 
       {/* Tabs */}
       <View style={styles.tabs}>
-        <TouchableOpacity
-          onPress={() => setActiveTab("stats")}
-          style={[styles.tab, activeTab === "stats" && styles.activeTab]}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "stats" && styles.activeTabText,
-            ]}
+        {["stats", "resistances"].map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            onPress={() => setActiveTab(tab)}
+            style={[styles.tab, activeTab === tab && styles.activeTab]}
           >
-            Base Stats
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setActiveTab("resistances")}
-          style={[styles.tab, activeTab === "resistances" && styles.activeTab]}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "resistances" && styles.activeTabText,
-            ]}
-          >
-            Resistances
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab && styles.activeTabText,
+              ]}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {/* Tab Content */}
-      <View style={styles.tabContent}>
-        {activeTab === "stats" && (
-          <View style={styles.baseStatsContainer}>
-            {Object.entries(pokemon.stats).map(([key, value]) => (
-              <View key={key} style={styles.statRow}>
-                <Text style={styles.statLabel}>{statNames[key] || key}</Text>
-                <Text style={styles.statValue}>{value}</Text>
-                {renderStatBar(value)}
-              </View>
-            ))}
-          </View>
-        )}
-        {activeTab === "resistances" && (
-          <View style={styles.resistanceGrid}>
-            {pokemon.apiResistances?.map((resistance) => (
-              <View key={resistance.name} style={styles.resistanceItem}>
-                {typeImages[resistance.name] && (
-                  <Image
-                    source={{ uri: typeImages[resistance.name] }}
-                    style={styles.resistanceIcon}
-                  />
-                )}
-                <Text style={styles.resistanceMultiplier}>
-                  {resistance.damage_multiplier}x
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
+      <View style={styles.tabContent}>{renderTabContent()}</View>
     </View>
   );
 };
@@ -207,7 +153,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingTop: 40,
     paddingHorizontal: 20,
-    zIndex: 1,
+    position: "relative",
   },
   headerContent: {
     alignItems: "flex-start",
@@ -247,8 +193,8 @@ const styles = StyleSheet.create({
     height: 200,
     position: "absolute",
     alignSelf: "center",
-    bottom: -30,
-    zIndex: 3,
+    bottom: -50,
+    zIndex: 2,
   },
   tabs: {
     flexDirection: "row",
@@ -279,7 +225,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   baseStatsContainer: {
-    padding: 20,
+    marginBottom: 20,
   },
   statRow: {
     flexDirection: "row",
@@ -309,28 +255,31 @@ const styles = StyleSheet.create({
   },
   statBarFill: {
     height: "100%",
-    backgroundColor: "#4caf50",
   },
   resistanceGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    paddingHorizontal: 10,
     marginVertical: 10,
   },
   resistanceItem: {
-    flexBasis: "18%", // 5 items par ligne avec marges
     alignItems: "center",
     marginBottom: 20,
+    width: "30%",
   },
   resistanceIcon: {
     width: 40,
     height: 40,
     marginBottom: 5,
   },
+  resistanceName: {
+    fontSize: 14,
+    color: "#555",
+  },
   resistanceMultiplier: {
     fontSize: 14,
     color: "#555",
+    marginTop: 4,
   },
 });
 

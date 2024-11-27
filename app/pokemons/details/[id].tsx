@@ -7,9 +7,10 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import usePokemonDetails from "@/hook/usePokemonsDetails";
 import usePokemonEvolutions from "@/hook/usePokemonsEvolution";
+import { getTypeColor } from "@/utils/TypeColors";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -22,37 +23,8 @@ const statNames = {
   speed: "Speed",
 };
 
-const typeColors = {
-  Plante: "#78C850",
-  Feu: "#F08030",
-  Eau: "#6890F0",
-  Insecte: "#A8B820",
-  Normal: "#A8A878",
-  Poison: "#A040A0",
-  Électrik: "#F8D030",
-  Sol: "#E0C068",
-  Fée: "#EE99AC",
-  Combat: "#C03028",
-  Psy: "#F85888",
-  Roche: "#B8A038",
-  Spectre: "#705898",
-  Glace: "#98D8D8",
-  Dragon: "#7038F8",
-  Ténèbres: "#705848",
-  Acier: "#B8B8D0",
-  Vol: "#A890F0",
-};
-
-const getTypeColor = (types) => {
-  if (types && types.length > 1) {
-    return typeColors[types[1]?.name] || "#ccc";
-  }
-  return typeColors[types[0]?.name] || "#ccc";
-};
-
 const PokemonDetails = () => {
   const { id } = useLocalSearchParams();
-  const router = useRouter();
   const { pokemon, loading } = usePokemonDetails(id as string);
   const { evolutions, loading: loadingEvolutions } = usePokemonEvolutions(
     id as string
@@ -98,7 +70,7 @@ const PokemonDetails = () => {
 
   const headerColor = getTypeColor(pokemon.apiTypes);
 
-  const renderStatBar = (statValue) => {
+  const renderStatBar = (statValue: number) => {
     const statPercentage = Math.min((statValue / 100) * 100, 100);
     const barColor = statValue < 50 ? "#F08030" : "#78C850";
     return (
@@ -111,6 +83,68 @@ const PokemonDetails = () => {
         />
       </View>
     );
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "stats":
+        return (
+          <View style={styles.baseStatsContainer}>
+            {Object.entries(pokemon.stats).map(([key, value]) => (
+              <View key={key} style={styles.statRow}>
+                <Text style={styles.statLabel}>{statNames[key] || key}</Text>
+                <Text style={styles.statValue}>{value}</Text>
+                {renderStatBar(value as number)}
+              </View>
+            ))}
+          </View>
+        );
+      case "resistances":
+        return (
+          <View style={styles.resistanceGrid}>
+            {pokemon.apiResistances.map((resistance) => (
+              <View key={resistance.name} style={styles.resistanceItem}>
+                {typeImages[resistance.name] && (
+                  <Image
+                    source={{ uri: typeImages[resistance.name] }}
+                    style={styles.resistanceIcon}
+                  />
+                )}
+                <Text style={styles.resistanceMultiplier}>
+                  {resistance.damage_multiplier}x
+                </Text>
+              </View>
+            ))}
+          </View>
+        );
+      case "evolution":
+        return (
+          <View style={styles.evolutionContainer}>
+            {loadingEvolutions ? (
+              <Text style={styles.loadingText}>Loading evolutions...</Text>
+            ) : evolutions && evolutions.length > 0 ? (
+              evolutions.map((evolution) => (
+                <TouchableOpacity
+                  key={evolution.pokedexId}
+                  style={styles.evolutionItem}
+                >
+                  <Image
+                    source={{ uri: evolution.image }}
+                    style={styles.evolutionImage}
+                  />
+                  <Text style={styles.evolutionName}>{evolution.name}</Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text style={styles.noEvolutionText}>
+                No evolutions available
+              </Text>
+            )}
+          </View>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -135,112 +169,33 @@ const PokemonDetails = () => {
 
       {/* Tabs */}
       <View style={[styles.tabs, { paddingTop: 20 }]}>
-        <TouchableOpacity
-          onPress={() => setActiveTab("stats")}
-          style={[styles.tab, activeTab === "stats" && styles.activeTab]}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "stats" && styles.activeTabText,
-            ]}
+        {["stats", "resistances", "evolution"].map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            onPress={() => setActiveTab(tab)}
+            style={[styles.tab, activeTab === tab && styles.activeTab]}
           >
-            Base Stats
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setActiveTab("resistances")}
-          style={[styles.tab, activeTab === "resistances" && styles.activeTab]}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "resistances" && styles.activeTabText,
-            ]}
-          >
-            Resistances
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setActiveTab("evolution")}
-          style={[styles.tab, activeTab === "evolution" && styles.activeTab]}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "evolution" && styles.activeTabText,
-            ]}
-          >
-            Evolution
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab && styles.activeTabText,
+              ]}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {/* Tab Content */}
-      <View style={styles.tabContent}>
-        {activeTab === "stats" && (
-          <View style={styles.baseStatsContainer}>
-            {Object.entries(pokemon.stats).map(([key, value]) => (
-              <View key={key} style={styles.statRow}>
-                <Text style={styles.statLabel}>{statNames[key] || key}</Text>
-                <Text style={styles.statValue}>{value}</Text>
-                {renderStatBar(value)}
-              </View>
-            ))}
-          </View>
-        )}
-        {activeTab === "resistances" && (
-          <View style={styles.resistanceGrid}>
-            {pokemon.apiResistances.map((resistance) => (
-              <View key={resistance.name} style={styles.resistanceItem}>
-                {typeImages[resistance.name] && (
-                  <Image
-                    source={{ uri: typeImages[resistance.name] }}
-                    style={styles.resistanceIcon}
-                  />
-                )}
-                <Text style={styles.resistanceMultiplier}>
-                  {resistance.damage_multiplier}x
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-        {activeTab === "evolution" && (
-          <View style={styles.evolutionContainer}>
-            {loadingEvolutions ? (
-              <Text style={styles.loadingText}>Loading evolutions...</Text>
-            ) : evolutions && evolutions.length > 0 ? (
-              evolutions.map((evolution) => (
-                <TouchableOpacity
-                  key={evolution.pokedexId}
-                  style={styles.evolutionItem}
-                  onPress={() => router.push(`/pokemon/${evolution.pokedexId}`)}
-                >
-                  <Text style={styles.evolutionName}>{evolution.name}</Text>
-                </TouchableOpacity>
-              ))
-            ) : (
-              <Text style={styles.noEvolutionText}>
-                No evolutions available
-              </Text>
-            )}
-          </View>
-        )}
-      </View>
+      <View style={styles.tabContent}>{renderTabContent()}</View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loader: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  container: { flex: 1 },
+  loader: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     height: screenHeight * 0.35,
     justifyContent: "space-between",
@@ -248,19 +203,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     position: "relative",
   },
-  headerContent: {
-    alignItems: "flex-start",
-    marginBottom: 20,
-  },
-  name: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  typesContainer: {
-    flexDirection: "row",
-    marginTop: 8,
-  },
+  headerContent: { alignItems: "flex-start", marginBottom: 20 },
+  name: { fontSize: 28, fontWeight: "bold", color: "#fff" },
+  typesContainer: { flexDirection: "row", marginTop: 8 },
   typeBadge: {
     backgroundColor: "rgba(255, 255, 255, 0.4)",
     borderRadius: 15,
@@ -268,11 +213,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginRight: 8,
   },
-  typeText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
+  typeText: { color: "#fff", fontSize: 14, fontWeight: "600" },
   pokemonId: {
     fontSize: 18,
     fontWeight: "bold",
@@ -303,53 +244,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderBottomWidth: 2,
     borderBottomColor: "transparent",
-    paddingTop: 40,
   },
-  activeTab: {
-    borderBottomColor: "#81c784",
-  },
-  tabText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
-  },
-  tabContent: {
-    flex: 1,
-    padding: 20,
-    height: "100%",
-    backgroundColor: "#fff",
-  },
-  resistanceGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginVertical: 10,
-  },
-  resistanceItem: {
-    flexDirection: "column",
-    alignItems: "center",
-    marginBottom: 20,
-    width: "20%",
-  },
-  resistanceIcon: {
-    width: 40,
-    height: 40,
-    marginBottom: 5,
-  },
-  resistanceMultiplier: {
-    fontSize: 14,
-    color: "#555",
-    textAlign: "center",
-  },
-  baseStatsContainer: {
-    padding: 20,
-  },
-  statRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
+  activeTab: { borderBottomColor: "#81c784" },
+  tabText: { fontSize: 16, fontWeight: "500", color: "#333" },
+  tabContent: { flex: 1, padding: 20, height: "100%", backgroundColor: "#fff" },
+  baseStatsContainer: { marginBottom: 20 },
+  statRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
   statLabel: {
     flex: 1,
     fontSize: 14,
@@ -371,37 +271,36 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     overflow: "hidden",
   },
-  statBarFill: {
-    height: "100%",
-    backgroundColor: "#4caf50",
+  statBarFill: { height: "100%", backgroundColor: "#4caf50" },
+  resistanceGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginVertical: 10,
   },
+  resistanceItem: {
+    flexDirection: "column",
+    alignItems: "center",
+    marginBottom: 20,
+    width: "20%",
+  },
+  resistanceIcon: { width: 40, height: 40, marginBottom: 5 },
+  resistanceMultiplier: { fontSize: 14, color: "#555", textAlign: "center" },
   evolutionContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
     padding: 10,
   },
-  evolutionItem: {
-    width: "48%",
-    alignItems: "center",
-    marginBottom: 20,
-  },
+  evolutionItem: { width: "48%", alignItems: "center", marginBottom: 20 },
   evolutionImage: {
     width: 100,
     height: 100,
     borderRadius: 50,
     marginBottom: 10,
   },
-  evolutionName: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#555",
-  },
-  noEvolutionText: {
-    fontSize: 16,
-    color: "#888",
-    textAlign: "center",
-  },
+  evolutionName: { fontSize: 14, fontWeight: "600", color: "#555" },
+  noEvolutionText: { fontSize: 16, color: "#888", textAlign: "center" },
 });
 
 export default PokemonDetails;

@@ -1,41 +1,18 @@
 import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { getTypeColor } from "@/utils/TypeColors";
 
-const PokemonCard = ({
-  pokemon,
-  onPress,
-}: {
-  pokemon: any;
-  onPress: () => void;
-}) => {
-  const getTypeColor = (types: any[]) => {
-    const typeColors: { [key: string]: string } = {
-      Plante: "#78C850",
-      Feu: "#F08030",
-      Eau: "#6890F0",
-      Insecte: "#A8B820",
-      Normal: "#A8A878",
-      Poison: "#A040A0",
-      Électrik: "#F8D030",
-      Sol: "#E0C068",
-      Fée: "#EE99AC",
-      Combat: "#C03028",
-      Psy: "#F85888",
-      Roche: "#B8A038",
-      Spectre: "#705898",
-      Glace: "#98D8D8",
-      Dragon: "#7038F8",
-      Ténèbres: "#705848",
-      Acier: "#B8B8D0",
-      Vol: "#A890F0",
-    };
-
-    if (types.length > 1) {
-      return typeColors[types[1]?.name] || "#ccc";
-    }
-    return typeColors[types[0]?.name] || "#ccc";
+type PokemonCardProps = {
+  pokemon: {
+    id: number;
+    name: string;
+    apiTypes: { name: string }[];
+    image: string;
   };
+  onPress: () => void;
+};
 
+const PokemonCard = ({ pokemon, onPress }: PokemonCardProps) => {
   const backgroundColor = getTypeColor(pokemon.apiTypes);
   const reversedTypes = [...pokemon.apiTypes].reverse();
 
@@ -44,23 +21,24 @@ const PokemonCard = ({
       onPress={onPress}
       style={[styles.card, { backgroundColor }]}
     >
-      {/* ID en haut à droite */}
+      {/* Pokémon ID */}
       <Text style={styles.pokemonId}>
         #{String(pokemon.id).padStart(3, "0")}
       </Text>
+
+      {/* Pokémon Details */}
       <View style={styles.leftContainer}>
-        {/* Nom du Pokémon */}
         <Text style={styles.name}>{pokemon.name}</Text>
-        {/* Types */}
         <View style={styles.typeContainer}>
-          {reversedTypes.map((type: any) => (
+          {reversedTypes.map((type) => (
             <View key={type.name} style={styles.typeBadge}>
               <Text style={styles.typeText}>{type.name}</Text>
             </View>
           ))}
         </View>
       </View>
-      {/* Image du Pokémon */}
+
+      {/* Pokémon Image */}
       <Image source={{ uri: pokemon.image }} style={styles.image} />
     </TouchableOpacity>
   );

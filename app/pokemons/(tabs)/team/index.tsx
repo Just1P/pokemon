@@ -49,8 +49,8 @@ const TeamForm = () => {
       const randomWildPokemon =
         wildPokemons[Math.floor(Math.random() * wildPokemons.length)];
 
-      const wildAppearanceDelay = Math.floor(Math.random() * 21) + 10; // Random delay between 10-30 seconds
-      const combatDuration = Math.floor(Math.random() * 21) + 10; // Random combat duration between 10-30 seconds
+      const wildAppearanceDelay = Math.floor(Math.random() * 21) + 10;
+      const combatDuration = Math.floor(Math.random() * 21) + 10;
 
       setTimeout(() => {
         Vibration.vibrate(500);
@@ -76,8 +76,8 @@ const TeamForm = () => {
           Alert.alert("Résultat du combat", result);
 
           setStep(0);
-        }, combatDuration * 1000); // Delay for combat duration
-      }, wildAppearanceDelay * 1000); // Delay for wild Pokémon appearance
+        }, combatDuration * 1000);
+      }, wildAppearanceDelay * 1000);
     } catch (error) {
       Alert.alert("Erreur", "Impossible de récupérer les données.");
       setStep(0);
